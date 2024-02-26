@@ -190,6 +190,12 @@ async function run() {
             res.send(posts);
             next();
         });
+        app.get('/blog-details/:id', async (req, res) => {
+            const id = req.params.id;
+            const details = { _id: new ObjectId(id) };
+            const result = await blogPosts.findOne(details);
+            res.send(result);
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
