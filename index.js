@@ -27,7 +27,7 @@ async function run() {
 
         //! collections
         const toolAndDriver = client.db("o-gsm-service").collection("tool-driver");
-
+        const fileBD = client.db("o-gsm-service").collection("all-files");
 
         // ====================--tools and driver apis--===================
         app.get("/all-tools", async (req, res, next) => {
@@ -90,6 +90,66 @@ async function run() {
             res.send(filter);
             next();
         });
+        // ================--all flashfiles for home page--================
+        app.get("/all-files", async (req, res, next) => {
+            const files = await fileBD.find().toArray();
+            res.send(files);
+            next();
+        });
+        app.post("/add-file", async (req, res, next) => {
+            const data = req.body;
+            const post = await fileBD.insertOne(data);
+            res.send(post);
+            next();
+        });
+        app.get("/unique-posts", async (req, res, next) => {
+            try {
+                const uniqueBrands = await fileBD
+                    .aggregate([
+                        {
+                            $group: {
+                                _id: "$brand",
+                                documentId: { $first: "$_id" },
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: "$documentId",
+                                brand: "$_id",
+                            },
+                        },
+                    ])
+                    .toArray();
+                res.send(uniqueBrands);
+                next();
+            } catch (error) {
+                console.error("Error fetching unique brands:", error);
+                res.status(500).send("Internal Server Error");
+            }
+        });
+        app.get("/file-brand/:brand", async (req, res, next) => {
+            const query = req.params.brand;
+            const filter = { brand: { $regex: query, $options: 'i' } };
+            const files = await fileBD.find(filter).toArray();
+            res.send(files);
+            next();
+        });
+        app.get("/single-file/:id", async (req, res, next) => {
+            const id = req.params.id;
+            const data = { _id: new ObjectId(id) };
+            const filter = await fileBD.findOne(data);
+            res.send(filter);
+            next();
+        });
+        app.delete("/remove-post/:id", async (req, res, next) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const remove = await fileBD.deleteOne(filter);
+            res.send(remove);
+            next();
+        });
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
