@@ -30,6 +30,8 @@ async function run() {
         const fileBD = client.db("o-gsm-service").collection("all-files");
         const serviceBD = client.db("o-gsm-service").collection("online-service");
         const blogPosts = client.db("o-gsm-service").collection("blogs");
+        const pages = client.db("o-gsm-service").collection("pages");
+        const agents = client.db("o-gsm-service").collection("agents");
 
         // ====================--tools and driver apis--===================
         app.get("/all-tools", async (req, res, next) => {
@@ -190,13 +192,54 @@ async function run() {
             res.send(posts);
             next();
         });
-        app.get('/blog-details/:id', async (req, res) => {
+        app.get('/blog-details/:id', async (req, res, next) => {
             const id = req.params.id;
             const details = { _id: new ObjectId(id) };
             const result = await blogPosts.findOne(details);
             res.send(result);
+            next();
         });
 
+        // pages area-----------------------------
+        app.get("/pages", async (req, res, next) => {
+            const data = req.body;
+            const page = await pages.insertOne(data);
+            res.send(page);
+            next();
+        });
+        app.post("/add-page", async (req, res, next) => {
+            const data = req.body;
+            const result = await pages.insertOne(data);
+            res.send(result);
+            next();
+        });
+        app.delete("/remove-page/:id", async (req, res, next) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const removed = await pages.deleteOne(query);
+            res.send(removed);
+            next();
+        });
+
+        // ------------------------agents area apis------------------------
+        app.get("/agents", async (req, res, next) => {
+            const agent = await agents.find().toArray();
+            res.send(agent);
+            next();
+        });
+        app.post("/add-agent", async (req, res, next) => {
+            const data = req.body;
+            const agent = await agents.insertOne(data);
+            res.send(agent);
+            next();
+        });
+        app.delete("/remove-agent/:id", async (req, res, next) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const removed = await agents.deleteOne(query);
+            res.send(removed);
+            next();
+        });
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log(
