@@ -28,7 +28,7 @@ async function run() {
         //! collections
         const toolAndDriver = client.db("o-gsm-service").collection("tool-driver");
         const fileBD = client.db("o-gsm-service").collection("all-files");
-
+        const serviceBD = client.db("o-gsm-service").collection("online-service")
         // ====================--tools and driver apis--===================
         app.get("/all-tools", async (req, res, next) => {
             const filter = await toolAndDriver.find().toArray();
@@ -41,7 +41,6 @@ async function run() {
             res.send(result);
             next();
         });
-
         app.get("/unique-tools", async (req, res, next) => {
             try {
                 const uniqueBrands = await toolAndDriver
@@ -146,6 +145,34 @@ async function run() {
             const filter = { _id: new ObjectId(id) };
             const remove = await fileBD.deleteOne(filter);
             res.send(remove);
+            next();
+        });
+
+
+        // =======-------Online services------====================
+        app.get("/o-services", async (req, res, next) => {
+            const allPost = await serviceBD.find().toArray();
+            res.send(allPost);
+            next();
+        });
+        app.post("/add-service", async (req, res, next) => {
+            const data = req.body;
+            const posted = await serviceBD.insertOne(data);
+            res.send(posted);
+            next();
+        });
+        app.get("/service-category/:category", async (req, res, next) => {
+            const name = req.params.category;
+            const filter = { category: name };
+            const result = await serviceBD.find(filter).toArray();
+            res.send(result);
+            next();
+        });
+        app.delete("/remove-service/:id", async (req, res, next) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const removed = await serviceBD.deleteOne(query);
+            res.send(removed);
             next();
         });
 
