@@ -28,7 +28,9 @@ async function run() {
         //! collections
         const toolAndDriver = client.db("o-gsm-service").collection("tool-driver");
         const fileBD = client.db("o-gsm-service").collection("all-files");
-        const serviceBD = client.db("o-gsm-service").collection("online-service")
+        const serviceBD = client.db("o-gsm-service").collection("online-service");
+        const blogPosts = client.db("o-gsm-service").collection("blogs");
+
         // ====================--tools and driver apis--===================
         app.get("/all-tools", async (req, res, next) => {
             const filter = await toolAndDriver.find().toArray();
@@ -163,7 +165,7 @@ async function run() {
         });
         app.get("/service-category/:category", async (req, res, next) => {
             const name = req.params.category;
-            const filter = { category: {$regex: name, $options: "i"} };
+            const filter = { category: { $regex: name, $options: "i" } };
             const result = await serviceBD.find(filter).toArray();
             res.send(result);
             next();
@@ -176,7 +178,18 @@ async function run() {
             next();
         });
 
-
+        // --======================-----blogs post apis---------======
+        app.get("/blogs", async (req, res, next) => {
+            const blogs = await blogPosts.find().toArray();
+            res.send(blogs);
+            next();
+        });
+        app.post("/add-blog", async (req, res, next) => {
+            const blogs = req.body;
+            const posts = await blogPosts.insertOne(blogs);
+            res.send(posts);
+            next();
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
