@@ -163,7 +163,7 @@ async function run() {
         });
         app.get("/service-category/:category", async (req, res, next) => {
             const name = req.params.category;
-            const filter = { category: name };
+            const filter = { category: {$regex: name, $options: "i"} };
             const result = await serviceBD.find(filter).toArray();
             res.send(result);
             next();
